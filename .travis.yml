@@ -1,24 +1,25 @@
 language: php
-
 php:
-  - 7.2
-
+- 7.2
 before_script:
-  - cp .env.travis .env
-  - composer self-update
-  - composer install --no-interaction
-  - php artisan key:generate
-  - php artisan migrate
-
+- cp .env.travis .env
+- composer self-update
+- composer install --no-interaction
+- php artisan key:generate
+- php artisan migrate
 before_install:
-  - mysql -e 'CREATE DATABASE bmore911_testing;'
-  
+- mysql -e 'CREATE DATABASE bmore911_testing;'
 script:
-  - vendor/bin/phpunit --coverage-clover=coverage.xml
-  
+- vendor/bin/phpunit --coverage-clover=coverage.xml
 services:
-  - mysql
-
+- mysql
 cache:
   directories:
-    - vendor
+  - vendor
+deploy:
+  provider: heroku
+  api_key:
+    secure: soFPPXsCIoL2n1cdbusmsYoH1Qur+Yzpf7XcXdKUwlutglKp/OXG3mHNtpGAJVeXUwaXI/7as+gLPhEbOQXf0dOwGoXv/iINzrWGEHHf00+htxsO1mGc3QCaUwDchtBEQj6EemfSLIw8HpWcsqRPBQeLKw1/nkjhKdlR6QfGoNRhEqIGw38qlR2Wqqx5HWc+qjT0Uqd/v0T1yO4ZVQz4bBGY6PDldHCBZaVeUe2FQjJYi6B6e14tYZxDPDhvdhjUS1rg0yCH68Nn2hCJVdi2epPYL5qJol/robjjHxN7Yey9mjt27kb+genx5FArm0wVbNb1v3vPNtOKCHvgOxzB3oAa5zrnZrsSYS0ubW0jfMGxQXybM/XnChZC/l5/1G/MooWqvUNyvadch8GLzNVJACUPOKsUCjFFvCkbdkO2wsMblXlrtmwSKGvEoXRhBcPUeqi8KlPbA5eFKVj5+XNFbWSStW82Z5LLl0leuOWBWWARy86YpIeGTaNe3vAYhbalxKeQuUiDeTiP3CBfVe2Jl3UzzEoS/zIWLm2WZR5Xsxh+Ust1lll2XUh9RjQBNd7nsRpVSSn0nVI1JBRbvP4t+IkFM8Mj6E2fEuZgoN+Wc/yP+4TB8ckr2CM6OmQmisJpobZ59MbQlokLnhacRu/IAfF5ZhtMWKEBznAEU9QO8CA=
+  app: bmore911api
+  on:
+    repo: arn95/Bmore911API

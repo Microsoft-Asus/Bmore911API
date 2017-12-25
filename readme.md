@@ -1,3 +1,6 @@
+[![Build Status](https://travis-ci.org/arn95/Bmore911API.svg?branch=master)](https://travis-ci.org/arn95/Bmore911API)
+
+
 ## Laravel API Boilerplate (JWT Edition) for Laravel 5.5
 
 Laravel API Boilerplate is a "starter kit" you can use to build your first API in seconds. As you can easily imagine, it is built on top of the awesome Laravel Framework. This version is built on Laravel 5.5!

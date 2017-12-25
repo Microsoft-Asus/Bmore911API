@@ -1,0 +1,24 @@
+language: php
+
+php:
+  - 7.2
+
+before_script:
+  - cp .env.travis .env
+  - composer self-update
+  - composer install --no-interaction
+  - php artisan key:generate
+  - php artisan migrate
+
+before_install:
+  - mysql -e 'CREATE DATABASE bmore911_testing;'
+  
+script:
+  - vendor/bin/phpunit --coverage-clover=coverage.xml
+  
+services:
+  - mysql
+
+cache:
+  directories:
+    - vendor

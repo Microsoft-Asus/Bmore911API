@@ -1,0 +1,106 @@
+FORMAT: 1A
+HOST: http://g2pp.loyola.edu/api/v1
+
+# Bmore911
+
+This API will serve the Bmore911 ReactJS front-end in displaying the data fetched from
+https://data.baltimorecity.gov about 911 calls that have happened around Baltimore since 2015.
+
+This API is powered by Laravel 5.5 and JWT.
+
+# Data Structures
+
+## Response JSON Model (object)
++ status: success (string, required) - Indicates whether the request was successful or not
++ data (object, required) - A message or an object with the requested content
+
+## Call DB Model (object)
++ id: 123 (number, required) - Unique autoincrementing id of the record in the table.
++ time: `2012-04-23T18:25:43.511Z` (string, required) - The time the call was made
++ priority: 1 (number, required) - The priority of the call (0 - non-emergency, 1 - low, 2 - medium, 3 - high).
++ district: SW (string, required) - The district the call was made in.
++ description: AGGRAV ASSAULT (string, required) - Description of what was happening during the call or reason for the call.
++ bpd_call_id: P152391782 (string, required) - Baltimore Police Dept. call identification number
++ address: 3400 BENSON AV (string,required) - Address near the call or where the call originated.
++ latitude: 39.265965 (number, required) - Latitude coordinate the call was made from.
++ longitude -76.650946 (number, required) - Longitude coordinate the call was made from.
++ created_at: `2012-04-23T18:25:43.511Z` (string, required) - When this call record was created in the database.
++ updated_at: `2012-04-23T18:25:43.511Z` (string, required) - When this call record was updated last in the database.
+
+## Call JSON Model (object)
++ id: 123 (number, required) - Unique autoincrementing id of the record in the table.
++ time: `2012-04-23T18:25:43.511Z` (string, required) - The time the call was made
++ priority: 1 (number, required) - The priority of the call (0 - non-emergency, 1 - low, 2 - medium, 3 - high).
++ district: SW (string, required) - The district the call was made in.
++ description: AGGRAV ASSAULT (string, required) - Description of what was happening during the call or reason for the call.
++ bpd_call_id: P152391782 (string, required) - Baltimore Police Dept. call identification number
++ address: 3400 BENSON AV (string,required) - Address near the call or where the call originated.
++ latitude: 39.265965 (number, required) - Latitude coordinate the call was made from.
++ longitude -76.650946 (number, required) - Longitude coordinate the call was made from.
++ created_at: `2012-04-23T18:25:43.511Z` (string, required) - When this call record was created in the database.
++ updated_at: `2012-04-23T18:25:43.511Z` (string, required) - When this call record was updated last in the database.
+
+## User DB Model (object)
++ id: 52 (number, required) - User's ID
++ name: Timmy M Meow (string, required) - User's full name
++ email: timmy@verizon.com (string, required) - User's email address
++ password: iamsmart (string, required) - User's password
++ remember_token: 1zxfYUioaujhk7KABYPnioni&7823984DSA343245a (string, optional) - User's authentication token
++ created_at: `2012-04-23T18:25:43.511Z` (string, required) - Specifies the date of profile creation
++ updated_at: `2012-04-23T18:25:43.511Z` (string, required) - Specifies the date when the user updated the profile last
+
+## User JSON Model (object)
++ id: 52 (number, required) - User's ID
++ name: Timmy M Meow (string, required) - User's full name
++ email: timmy@verizon.com (string, required) - User's email address
++ created_at: `2012-04-23T18:25:43.511Z` (string, required) - Specifies the date of profile creation
++ updated_at: `2012-04-23T18:25:43.511Z` (string, required) - Specifies the date when the user updated the profile last
+
+# Group HTTP Response
+
+## Methods
+
+### *GET*
+### *POST*
+
+## Code Descriptions
+
+### 200
+    OK
+
+    The request has succeeded. The information returned with the response is dependent on the method used in the request, for example:
+
+    GET an entity corresponding to the requested resource is sent in the response;
+
+    POST an entity describing or containing the result of the action;
+
+### 400
+    BAD REQUEST
+
+    The request could not be understood by the server due to malformed syntax.
+
+    The client SHOULD NOT repeat the request without modifications.
+
+### 401
+    UNAUTHORIZED
+
+    The request requires user authentication.
+
+    The response MUST include an Authenticate header field containing a token.
+
+    The client MAY repeat the request with a suitable Authenticate header field. If the request already included Authenticate credentials, then the 401 response indicates that authorization has been refused for that token.
+
+### 403
+    FORBIDDEN
+
+    The server understood the request, but is refusing to fulfill it due to authorization.
+
+### 404
+    NOT FOUND
+
+    The server has not found anything matching the Request-URI.
+
+### 409
+    CONFLICT
+
+    The request could not be completed due to a conflict with the current state of the resource or because the resource already exists.

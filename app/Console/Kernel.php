@@ -2,8 +2,12 @@
 
 namespace App\Console;
 
+use App\Jobs\DownloadCallRecordsFile;
+use App\Jobs\ProcessCallRecords;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
+use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\Log;
 
 class Kernel extends ConsoleKernel
 {
@@ -24,8 +28,17 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        // $schedule->command('inspire')
-        //          ->hourly();
+
+        ini_set('memory_limit','4096M');
+
+
+        if (!App::environment('local')){
+            $schedule->job(new DownloadCallRecordsFile)->weekly()->after(function (){
+                ProcessCallRecords::dispatch();
+            });
+        } else {
+            $schedule->job(new ProcessCallRecords());
+        }
     }
 
     /**

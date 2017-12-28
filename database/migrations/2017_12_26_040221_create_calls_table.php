@@ -14,12 +14,13 @@ class CreateCallsTable extends Migration
     public function up()
     {
         Schema::create('calls', function (Blueprint $table) {
-            $table->increments('id');
-            $table->dateTime('time');
+            $table->primary('bpd_call_id');
+            $table->unique('bpd_call_id');
+            $table->string('bpd_call_id');
+            $table->dateTime('call_time');
             $table->unsignedTinyInteger('priority');
             $table->string('district');
             $table->string('description');
-            $table->string('bpd_call_id');
             $table->string('address');
             $table->decimal('latitude', 10, 8);
             $table->decimal('longitude', 11, 8);

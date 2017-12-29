@@ -14,9 +14,7 @@ class CreateCallsTable extends Migration
     public function up()
     {
         Schema::create('calls', function (Blueprint $table) {
-            $table->primary('bpd_call_id');
-            $table->unique('bpd_call_id');
-            $table->string('bpd_call_id');
+            $table->string('bpd_call_id')->primary()->unique();
             $table->dateTime('call_time');
             $table->unsignedTinyInteger('priority');
             $table->string('district');

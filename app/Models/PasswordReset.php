@@ -10,31 +10,26 @@ namespace App\Models;
 use Reliese\Database\Eloquent\Model as Eloquent;
 
 /**
- * Class User
+ * Class PasswordReset
  * 
  * @property int $id
- * @property string $name
  * @property string $email
- * @property string $password
- * @property string $remember_token
+ * @property string $token
  * @property \Carbon\Carbon $created_at
- * @property \Carbon\Carbon $updated_at
  *
  * @package App\Models
  */
-class User extends Eloquent
+class PasswordReset extends Eloquent
 {
 	use \Reliese\Database\Eloquent\BitBooleans;
+	public $timestamps = false;
 
 	protected $hidden = [
-		'password',
-		'remember_token'
+		'token'
 	];
 
 	protected $fillable = [
-		'name',
 		'email',
-		'password',
-		'remember_token'
+		'token'
 	];
 }

@@ -60,8 +60,8 @@ class ProcessCallRecords implements ShouldQueue
             $district = 'null';
             $description = 'null';
             $address = 'null';
-            $latitude = -1;
-            $longitude = -1;
+            $latitude = 0;
+            $longitude = 0;
 
             $record_count = 0;
             $records_added = 0;
@@ -69,14 +69,25 @@ class ProcessCallRecords implements ShouldQueue
             $records_failed_to_add = 0;
 
 
-            $csv = Reader::createFromPath('storage/app/'. $filename, 'r')->setHeaderOffset(0);
+            $reader = Reader::createFromPath('storage/app/'. $filename, 'r');
+            $reader->setHeaderOffset(0);
+            $records = $reader->getRecords();
 
-            foreach ($csv as $record) {
+            foreach ($records as $offset => $record) {
 
-                //Setting baltimore police dept. call id or call number as they say it
+                $record_count++;
+
+                //all cell values will either exist or mapped to null by the reader
                 $bpd_call_id = $record['callNumber'];
+                $call_time = $record['callDateTime'];
+                $priority = $record['priority'];
+                $district = $record['district'];
+                $description = $record['description'];
+                $address = $record['incidentLocation'];
+                $addrAndCoordinates = $record['location'];
 
-                if (empty($bpd_call_id)){
+                if ($bpd_call_id == 'null' || empty($bpd_call_id)){
+                    // Skip this one
                     $records_skipped++;
                     continue;
                 }
@@ -86,93 +97,76 @@ class ProcessCallRecords implements ShouldQueue
                 if ($record_exists){
                     // Skip this one
                     $records_skipped++;
-                } else {
+                    continue;
+                }
 
-                    //Setting date
-                    if(empty($record['callDateTime'])) {
-                        $call_time = "0000-00-00 00:00:00";
-                    } else {
-                        $call_time = Carbon::parse($record['callDateTime'])->toDateTimeString();
-                    }
+                if ($call_time == 'null' || empty($call_time))
+                    $call_time = '0000-00-00 00:00:00';
+                else {
+                    $call_time = Carbon::parse($call_time)->toDateTimeString();
+                }
 
-                    //Setting call priority as equivalent call id
-                    if(empty($record['priority'])){
-                        $priority = Call::$PRIORITY_UNKNOWN;
-                    } else {
-                        switch ($record['priority']){
+                if ($priority == 'null' || empty($priority))
+                    $priority = Call::$PRIORITY_UNKNOWN;
+                else {
+                    switch ($record['priority']){
 
-                            case Call::$STRING_PRIORITY_NON_EMERGENCY: $priority = Call::$PRIORITY_NON_EMERGENCY; break;
-                            case Call::$STRING_PRIORITY_LOW: $priority = Call::$PRIORITY_LOW; break;
-                            case Call::$STRING_PRIORITY_MEDIUM: $priority = Call::$PRIORITY_MEDIUM; break;
-                            case Call::$STRING_PRIORITY_HIGH: $priority = Call::$PRIORITY_HIGH; break;
-                            default : $priority = Call::$PRIORITY_UNKNOWN; break;
-                        }
-                    }
-
-                    //Setting the district the call came from
-                    if(empty($record['district'])){
-                        $district = AppStatics::$UNKNOWN_STRING;
-                    } else {
-                        $district = $record['district'];
-                    }
-
-                    //Setting description of the call or event that led to call
-                    if (empty($record['description'])){
-                        $description = AppStatics::$UNKNOWN_STRING;
-                    } else {
-                        $description = $record['description'];
-                    }
-
-                    //Setting address the call was made from
-                    if(empty($record['incidentLocation'])){
-                        $address = AppStatics::$UNKNOWN_STRING;
-                    } else {
-                        $address = $record['incidentLocation'];
-                    }
-
-                    //Extracting coordinates
-                    if(empty($record['location'])){
-                        $latitude = 0;
-                        $longitude = 0;
-                    } else {
-                        $location = $record['location'];
-                        $temp = str_after($location, "(");
-
-                        $coordinates = str_replace(")", "", $temp);
-                        $coordinates = str_replace(" ", "", $coordinates);
-
-                        $coordinates_array = explode(",", $coordinates);
-
-                        //Setting lat. and long.
-                        $latitude = $coordinates_array[0];
-                        $longitude = $coordinates_array[1];
-
-                        if (!is_numeric($latitude) || !is_numeric($longitude)){
-                            $latitude = 0;
-                            $longitude = 0;
-                        }
-                    }
-
-
-                    $call = new Call;
-                    $call->setBpdCallId($bpd_call_id);
-                    $call->setCallTime($call_time);
-                    $call->setPriority($priority);
-                    $call->setDistrict($district);
-                    $call->setDescription($description);
-                    $call->setAddress($address);
-                    $call->setLatitude($latitude);
-                    $call->setLongitude($longitude);
-                    $success = $call->save();
-
-                    if (!$success){
-                        $records_failed_to_add++;
-                    } else {
-                        $records_added++;
+                        case Call::$STRING_PRIORITY_NON_EMERGENCY: $priority = Call::$PRIORITY_NON_EMERGENCY; break;
+                        case Call::$STRING_PRIORITY_LOW: $priority = Call::$PRIORITY_LOW; break;
+                        case Call::$STRING_PRIORITY_MEDIUM: $priority = Call::$PRIORITY_MEDIUM; break;
+                        case Call::$STRING_PRIORITY_HIGH: $priority = Call::$PRIORITY_HIGH; break;
+                        default : $priority = Call::$PRIORITY_UNKNOWN;
                     }
                 }
 
-                $record_count++;
+                if ($district == 'null' || empty($district))
+                    $district = AppStatics::$UNKNOWN_STRING;
+
+                if ($description == 'null' || empty($description))
+                    $description = AppStatics::$UNKNOWN_STRING;
+
+                if ($address == 'null' || empty($address))
+                    $address = AppStatics::$UNKNOWN_STRING;
+
+                if ($addrAndCoordinates == 'null' || empty($addrAndCoordinates)){
+                    $latitude = 0;
+                    $longitude = 0;
+                } else {
+                    $temp = str_after($addrAndCoordinates, "(");
+
+                    $coordinates = str_replace(")", "", $temp);
+                    $coordinates = str_replace(" ", "", $coordinates);
+
+                    $coordinates_array = explode(",", $coordinates);
+
+                    //Setting lat. and long.
+                    if (count($coordinates_array) == 2){
+                        $latitude = $coordinates_array[0];
+                        $longitude = $coordinates_array[1];
+                    }
+
+                    if (!is_numeric($latitude) || !is_numeric($longitude)){
+                        $latitude = 0;
+                        $longitude = 0;
+                    }
+                }
+
+                $call = new Call;
+                $call->setBpdCallId($bpd_call_id);
+                $call->setCallTime($call_time);
+                $call->setPriority($priority);
+                $call->setDistrict($district);
+                $call->setDescription($description);
+                $call->setAddress($address);
+                $call->setLatitude($latitude);
+                $call->setLongitude($longitude);
+                $success = $call->save();
+
+                if (!$success){
+                    $records_failed_to_add++;
+                } else {
+                    $records_added++;
+                }
             }
 
             Log::info('Processing complete.');

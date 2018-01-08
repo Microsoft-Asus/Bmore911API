@@ -4,6 +4,7 @@ namespace App\Jobs;
 
 use App\AppStatics;
 use App\Models\Call;
+use App\Models\CallRecordFile;
 use Illuminate\Bus\Queueable;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
@@ -13,6 +14,7 @@ use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use League\Csv\Reader;
+use League\Csv\Statement;
 use Carbon\Carbon;
 
 class ProcessCallRecords implements ShouldQueue
@@ -40,19 +42,42 @@ class ProcessCallRecords implements ShouldQueue
         Log::info('Processing call records file...');
 
         $exists = false;
-        $filename = NULL;
+        $file_path = NULL;
+        $call_records_file = NULL;
 
         if (App::environment('local')) {
             $exists = Storage::disk('local')->exists(AppStatics::$CALL_RECORDS_FILENAME_MINI);
-            $filename = AppStatics::$CALL_RECORDS_FILENAME_MINI;
+            if ($exists){
+                $call_records_file = CallRecordFile::where('uri', 'storage/app/' . AppStatics::$CALL_RECORDS_FILENAME_MINI)->first();
+                if (!$call_records_file){ // if it doesn't exist
+                    $call_records_file = new CallRecordFile;
+                    $call_records_file->setUri('storage/app/' . AppStatics::$CALL_RECORDS_FILENAME_MINI);
+                    $call_records_file->save();
+                }
+            }
+            $file_path = 'storage/app/' . AppStatics::$CALL_RECORDS_FILENAME_MINI;
         } else {
-            $exists = Storage::disk('local')->exists(AppStatics::$CALL_RECORDS_FILENAME);
-            $filename = AppStatics::$CALL_RECORDS_FILENAME;
+            $call_records_file = CallRecordFile::latest()->first();
+            if ($call_records_file){
+                $exists = Storage::disk('local')->exists(AppStatics::$CALL_RECORDS_FILENAME);
+                $file_path = $call_records_file->getUri();
+            } else {
+                $exists = false;
+                Log::info('No DB entry found for the latest downloaded call records file');
+            }
         }
 
         if (!$exists){
             Log::info('Records file does not exist.');
         } else {
+
+            $last_processed_line = $call_records_file->getLastProcessedLine();
+            $last_bpd_call_id = NULL;
+
+            if ($last_processed_line == NULL)
+                $last_processed_line = 0;
+
+            Log::info('Starting from last processed line #: ' . $last_processed_line);
 
             $bpd_call_id = 'null';
             $call_time = 'null';
@@ -69,9 +94,10 @@ class ProcessCallRecords implements ShouldQueue
             $records_failed_to_add = 0;
 
 
-            $reader = Reader::createFromPath('storage/app/'. $filename, 'r');
+            $reader = Reader::createFromPath($call_records_file->getUri(), 'r');
             $reader->setHeaderOffset(0);
-            $records = $reader->getRecords();
+            $stmt = (new Statement())->offset($last_processed_line);
+            $records = $stmt->process($reader);
 
             foreach ($records as $offset => $record) {
 
@@ -166,8 +192,19 @@ class ProcessCallRecords implements ShouldQueue
                     $records_failed_to_add++;
                 } else {
                     $records_added++;
+                    $last_bpd_call_id = $bpd_call_id;
                 }
             }
+
+            if ($call_records_file->getLastProcessedLine() == count($reader)){
+                Log::info('Database has the latest call records. Processing skipped.');
+            } else {
+                $call_records_file->setLastProcessedLine(count($reader));
+            }
+
+            if ($records_added != 0)
+                $call_records_file->setLastProcessedBPDCallId($last_bpd_call_id);
+            $call_records_file->save();
 
             Log::info('Processing complete.');
             Log::info('Record count: ' . $record_count);

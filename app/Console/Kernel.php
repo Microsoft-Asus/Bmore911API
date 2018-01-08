@@ -32,12 +32,16 @@ class Kernel extends ConsoleKernel
         ini_set('memory_limit','4096M');
 
 
-        if (!App::environment('local')){
-            $schedule->job(new DownloadCallRecordsFile)->weekly()->after(function (){
-                ProcessCallRecords::dispatch();
-            });
-        } else {
+        if (App::environment('local')){
             $schedule->job(new ProcessCallRecords());
+        } else {
+             $schedule->job(new DownloadCallRecordsFile)->daily()->after(function (){
+                 ProcessCallRecords::dispatch();
+             });
+//            //Only for testing
+//            $schedule->job(new DownloadCallRecordsFile)->after(function (){
+//                ProcessCallRecords::dispatch();
+//            });
         }
     }
 

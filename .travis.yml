@@ -23,7 +23,10 @@ deploy:
   run:
   - "composer install --optimize-autoloader"
   - "php artisan config:cache"
-  - "php artisan migrate --no-interaction"
+  - "php artisan migrate --force --no-interaction"
   app: bmore911api
   on:
     repo: arn95/Bmore911API
+notifications:
+    on_success: never
+    on_failure: always

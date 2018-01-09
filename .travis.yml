@@ -10,18 +10,20 @@ before_script:
 - php artisan key:generate
 - php artisan migrate
 script:
-- vendor/bin/phpunit --coverage-clover=coverage.xml
+- vendor/bin/phpunit
 services:
 - mysql
 cache:
   directories:
   - vendor
-before_deploy:
-- cp .env.prod .env
 deploy:
   provider: heroku
   api_key:
     secure: uGDunhAkB/zStBQWVugcAGn3TT1Y1VHd83+7tSjNnmEQGljxmKPuqmjg6DMLXnzbsFra1W1cVrw4okDErYqCeRGdHTCAJUoULW8YVvT54Fl5VIrmgn1OfDMyRCgRaNS1ii8HN6S5+tUaGotkQx9swHcPZ1fOtlLOZyN8sqDPXw00+/RlemzzOtyaimRp3u1Jr1R6GqYLkYTREyH14dC+6VdCjuEPu+RO9wtg3a3PoYXaTpkOHNDuguxENgFa8iLwqctwGE3ObpMkYIYIwxSMH718bAN9HIOXyR5AUHWnQpDcXLphTY+CWlhNJfbuvFylQjSjqupNyri7pVr1pjeS6AGeem6q0oFjAZUJUrZHZlNjOtvzBxcRlI6AK7+Be3EXPzb5ItdT4kDoacdA8cf40e8RvhgOojmHpt/Gfs4WXJxRtDZ6Yjlq6VnLUopcuI7gjE/gQIFRrPEEz24zHbixk/wRzWm+7OJLVV64UkXJzCykM3y/kW7bIsNzbm4XYveNpRp0evfd7CHXC/V1IPSeQjhhG+6x5x2EPoa/Ch7xNJN/V/2KjjdfDhNLBXnxzkjUyQWyn7Fim2Y10QH17JINJNyPAnSXcB1IkBcY+jhOjgRstb2IQ5S1TxCd9GBtsg4jd9mF/jS2t5AJ5JY1GopCV5cd1oatcZHTvDiIwR+iM+w=
+  run:
+  - "cp .env.prod .env"
+  - "php artisan key:generate"
+  - "php artisan migrate:refresh"
   app: bmore911api
   on:
     repo: arn95/Bmore911API

@@ -4,11 +4,9 @@ php:
 before_install:
 - mysql -e 'CREATE DATABASE bmore911_testing;'
 before_script:
-- cp .env.travis .env
 - composer self-update
 - composer install --no-interaction
-- php artisan key:generate
-- php artisan migrate
+- php artisan migrate --force --no-interaction
 script:
 - vendor/bin/phpunit
 services:
@@ -16,8 +14,6 @@ services:
 cache:
   directories:
   - vendor
-before_deploy:
-- cp .env.prod .env
 deploy:
   provider: heroku
   api_key:

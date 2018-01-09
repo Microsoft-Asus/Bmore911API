@@ -18,7 +18,6 @@ cache:
   - vendor
 before_deploy:
 - cp .env.prod .env
-- php artisan key:generate
 deploy:
   provider: heroku
   api_key:

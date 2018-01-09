@@ -38,7 +38,7 @@ class DownloadCallRecordsFile implements ShouldQueue
      */
     public function handle()
     {
-        
+
         $file_exists = Storage::disk('local')->exists(AppStatics::$CALL_RECORDS_FILENAME);
         if (!$file_exists)
             $call_records_file_uri = NULL;

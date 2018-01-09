@@ -1,6 +1,6 @@
 {
-    "name": "francescomalatesta/laravel-api-boilerplate-jwt",
-    "description": "An API Boilerplate to create a ready-to-use REST API in seconds.",
+    "name": "Bmore911api",
+    "description": "API to fetch latest 911 calls in Baltimore",
     "keywords": ["laravel", "api", "boilerplate", "jwt", "auth", "rest"],
     "license": "MIT",
     "type": "project",

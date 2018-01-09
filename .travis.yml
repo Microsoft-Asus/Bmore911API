@@ -16,6 +16,8 @@ services:
 cache:
   directories:
   - vendor
+before_deploy:
+- cp .env.prod .env
 deploy:
   provider: heroku
   api_key:

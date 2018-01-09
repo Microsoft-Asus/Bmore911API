@@ -4,11 +4,16 @@ php:
 before_install:
 - mysql -e 'CREATE DATABASE bmore911_testing;'
 before_script:
+- export APP_ENV=local
+- export DB_CONNECTION=bmore911_testing
 - composer self-update
 - composer install --no-interaction
-- php artisan migrate --force --no-interaction
+- php artisan migrate
 script:
 - vendor/bin/phpunit
+after_script:
+- export DB_CONNECTION=mysql
+- export APP_ENV=production
 services:
 - mysql
 cache:

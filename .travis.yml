@@ -23,6 +23,7 @@ deploy:
   run:
   - "composer install --optimize-autoloader"
   - "php artisan config:cache"
+  - "php artisan route:cache"
   - "php artisan migrate --force --no-interaction"
   app: bmore911api
   on:

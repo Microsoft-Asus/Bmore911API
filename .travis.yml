@@ -11,14 +11,14 @@ before_script:
 - php artisan migrate
 script:
 - vendor/bin/phpunit
+after_script:
+- export DB_CONNECTION=mysql
+- export APP_ENV=production
 services:
 - mysql
 cache:
   directories:
   - vendor
-before_deploy:
-- export DB_CONNECTION=mysql
-- export APP_ENV=production
 deploy:
   provider: heroku
   api_key:

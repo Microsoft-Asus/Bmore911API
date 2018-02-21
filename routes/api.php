@@ -47,7 +47,7 @@ $api->version('v1', function (Router $api) {
     });
 
     $api->group(['prefix' => 'records'], function(Router $api) {
-        $api->get('/search', function(Request $request){
+        $api->post('/search', function(Request $request){
 
             $call_records = Call::query();
 

@@ -50,45 +50,52 @@ $api->version('v1', function (Router $api) {
         $api->post('/search', function(Request $request){
 
             $call_records = Call::query();
+            $fromDate = "";
+            $toDate = "";
 
             $validator = BMValidate::init($request);
-            $params_present = $validator->check(['start_date', 'end_date', 'priority', 'district'])->getParamsPresent();
+            $params_present = $validator->check(['start_date', 'end_date', 'priorities', 'districts'])->getParamsPresent();
 
             if (count($params_present) == 0){
-                BMResponse::bad_request('No call record parameters specified');
-            }
-            
-            if (array_has($params_present, 'start_date') && array_has($params_present, 'end_date')){
-
-                $from = Carbon::createFromFormat('Y-m-d', $params_present['start_date'])->toDateTimeString();
-                $to = Carbon::createFromFormat('Y-m-d', $params_present['end_date'])->toDateTimeString();
-
-                $call_records = $call_records->whereBetween('call_time', array($from,$to))->orderBy('call_time');
-
-            } else if (array_has($params_present, 'start_date')){
-                $from = Carbon::createFromFormat('Y-m-d', $params_present['start_date'])->toDateTimeString();
-                $to = Carbon::now()->toDateTimeString();
-
-                $call_records = $call_records->whereBetween('call_time', array($from,$to))->orderBy('call_time');
-            } else if (array_has($params_present, 'end_date')){
-                $from = Carbon::now()->toDateTimeString();
-                $to = Carbon::createFromFormat('Y-m-d', $params_present['end_date'])->toDateTimeString();
-
-                $call_records = $call_records->whereBetween('call_time', array($from,$to))->orderBy('call_time');
+                return BMResponse::bad_request('No call record parameters specified');
             }
 
-            if (array_has($params_present, 'priority')){
-                $call_records = $call_records->where('priority', $params_present['priority']);
+            $start_date_key = array_search('start_date', $params_present);
+            $end_date_key = array_search('end_date', $params_present);
+            $priorities_key = array_search('priorities', $params_present);
+            $districts_key = array_search('districts', $params_present);
+
+            if ( ($start_date_key !== FALSE && $start_date_key >= 0) && ($end_date_key !== FALSE && $end_date_key >= 0)){
+
+                $fromDate = Carbon::createFromFormat('Y-m-d', $request[$params_present[$start_date_key]],'America/New_York')->toDateTimeString() . " 00:00:00";
+                $toDate = Carbon::createFromFormat('Y-m-d', $request[$params_present[$end_date_key]], 'America/New_York')->toDateTimeString() . " 23:59:59";
+
+                $call_records = $call_records->whereBetween('call_time', [$fromDate,$toDate])->orderBy('call_time');
+
+            } else if ($start_date_key !== FALSE && $start_date_key >= 0){
+
+                $fromDate = Carbon::createFromFormat('Y-m-d', $request[$params_present[$start_date_key]],'America/New_York')->toDateTimeString() . " 00:00:00";
+                $toDate = Carbon::now()->toDateTimeString() . " 23:59:59";
+
+                $call_records = $call_records->whereBetween('call_time', [$fromDate,$toDate])->orderBy('call_time');
+            } else if ($end_date_key !== FALSE && $end_date_key >= 0){
+                $fromDate = Carbon::now()->toDateTimeString() . " 00:00:00";
+                $toDate = Carbon::createFromFormat('Y-m-d', $request[$params_present[$end_date_key]],'America/New_York')->toDateTimeString() . " 23:59:59";
+
+                $call_records = $call_records->whereBetween('call_time', [$fromDate,$toDate])->orderBy('call_time');
             }
 
-            if (array_has($params_present, 'district')){
-                $call_records = $call_records->where('district', $params_present['district']);
+            if ($priorities_key !== FALSE && $priorities_key >= 0){
+                $call_records = $call_records->where('priority', '=', $request['priorities'], 'and');
             }
 
-            $call_records = $call_records->get();
+            if ($districts_key !== FALSE && $districts_key >= 0){
+                $call_records = $call_records->where('district', '=', $request['districts'], 'and');
+            }
 
-            BMResponse::success($call_records);
+            $result = $call_records->get();
 
+            return BMResponse::success($result);
         });
     });
 

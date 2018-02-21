@@ -1,6 +1,11 @@
 <?php
 
 use Dingo\Api\Routing\Router;
+use App\Helpers\BMResponse;
+use App\Helpers\BMValidate;
+use App\Models\Call;
+use Carbon\Carbon;
+use Illuminate\Http\Request;
 
 /** @var Router $api */
 $api = app(Router::class);
@@ -39,6 +44,52 @@ $api->version('v1', function (Router $api) {
         return response()->json([
             'message' => 'This is a simple example of item returned by your APIs. Everyone can see it.'
         ]);
+    });
+
+    $api->group(['prefix' => 'records'], function(Router $api) {
+        $api->get('/search', function(Request $request){
+
+            $call_records = Call::query();
+
+            $validator = BMValidate::init($request);
+            $params_present = $validator->check(['start_date', 'end_date', 'priority', 'district'])->getParamsPresent();
+
+            if (count($params_present) == 0){
+                BMResponse::bad_request('No call record parameters specified');
+            }
+            
+            if (array_has($params_present, 'start_date') && array_has($params_present, 'end_date')){
+
+                $from = Carbon::createFromFormat('Y-m-d', $params_present['start_date'])->toDateTimeString();
+                $to = Carbon::createFromFormat('Y-m-d', $params_present['end_date'])->toDateTimeString();
+
+                $call_records = $call_records->whereBetween('call_time', array($from,$to))->orderBy('call_time');
+
+            } else if (array_has($params_present, 'start_date')){
+                $from = Carbon::createFromFormat('Y-m-d', $params_present['start_date'])->toDateTimeString();
+                $to = Carbon::now()->toDateTimeString();
+
+                $call_records = $call_records->whereBetween('call_time', array($from,$to))->orderBy('call_time');
+            } else if (array_has($params_present, 'end_date')){
+                $from = Carbon::now()->toDateTimeString();
+                $to = Carbon::createFromFormat('Y-m-d', $params_present['end_date'])->toDateTimeString();
+
+                $call_records = $call_records->whereBetween('call_time', array($from,$to))->orderBy('call_time');
+            }
+
+            if (array_has($params_present, 'priority')){
+                $call_records = $call_records->where('priority', $params_present['priority']);
+            }
+
+            if (array_has($params_present, 'district')){
+                $call_records = $call_records->where('district', $params_present['district']);
+            }
+
+            $call_records = $call_records->get();
+
+            BMResponse::success($call_records);
+
+        });
     });
 
 });

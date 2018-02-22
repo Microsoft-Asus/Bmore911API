@@ -130,7 +130,7 @@ $api->version('v1', function (Router $api) {
             return BMResponse::success($collection_to_ret);
         });
 
-        $api->get('/count/day', function(){
+        $api->get('/count/today', function(){
 
             $from = Carbon::now()->toDateString() . " 00:00:00";
             $to = Carbon::now()->toDateTimeString();

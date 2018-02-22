@@ -76,13 +76,13 @@ $api->version('v1', function (Router $api) {
             } else if ($start_date_key !== FALSE && $start_date_key >= 0){
 
                 $fromDate = Carbon::parse($request['start_date'])->toDateString() . " 00:00:00";
-                $toDate = Carbon::now()->toDateTimeString();
+                $toDate = Carbon::now('America/New_York')->toDateTimeString();
 
                 $call_records = $call_records->whereBetween('call_time', [$fromDate,$toDate])->orderBy('call_time');
 
             } else if ($end_date_key !== FALSE && $end_date_key >= 0){
 
-                $fromDate = Carbon::now()->toDateTimeString();
+                $fromDate = Carbon::now('America/New_York')->toDateTimeString();
                 $toDate = Carbon::parse($request['end_date'])->toDateString() . " 23:59:59";
 
                 $call_records = $call_records->whereBetween('call_time', [$fromDate,$toDate])->orderBy('call_time');
@@ -129,6 +129,43 @@ $api->version('v1', function (Router $api) {
 
             return BMResponse::success($collection_to_ret);
         });
+
+        $api->get('/count/day', function(){
+
+            $from = Carbon::now()->toDateString() . " 00:00:00";
+            $to = Carbon::now()->toDateTimeString();
+
+            $query_return = Call::whereBetween('call_time', [$from,$to])->count();
+
+            return BMResponse::success($query_return); 
+        });
+
+        $api->get('/count/week', function(){
+
+            $from = Carbon::now('America/New_York')->startOfWeek();
+            $to = Carbon::now('America/New_York')->toDateTimeString();
+
+            $query_return = Call::whereBetween('call_time', [$from,$to])->count();
+
+            return BMResponse::success($query_return); 
+        });
+
+        $api->get('/count/month', function(){
+            $from = Carbon::now('America/New_York')->startOfMonth();
+            $to = Carbon::now('America/New_York')->toDateTimeString();
+
+            $query_return = Call::whereBetween('call_time', [$from,$to])->count();
+
+            return BMResponse::success($query_return); 
+        });
+
+        $api->get('/count/total', function(){
+            $query_return = Call::count();
+
+            return BMResponse::success($query_return);
+        });
+
+
     });
 
 });

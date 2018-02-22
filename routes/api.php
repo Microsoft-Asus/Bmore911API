@@ -6,6 +6,7 @@ use App\Helpers\BMValidate;
 use App\Models\Call;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 
 /** @var Router $api */
 $api = app(Router::class);
@@ -67,35 +68,66 @@ $api->version('v1', function (Router $api) {
 
             if ( ($start_date_key !== FALSE && $start_date_key >= 0) && ($end_date_key !== FALSE && $end_date_key >= 0)){
 
-                $fromDate = Carbon::createFromFormat('Y-m-d', $request[$params_present[$start_date_key]],'America/New_York')->toDateTimeString() . " 00:00:00";
-                $toDate = Carbon::createFromFormat('Y-m-d', $request[$params_present[$end_date_key]], 'America/New_York')->toDateTimeString() . " 23:59:59";
+                $fromDate = Carbon::parse($request['start_date'])->toDateString() . " 00:00:00";
+                $toDate = Carbon::parse($request['end_date'])->toDateString() . " 23:59:59";
 
                 $call_records = $call_records->whereBetween('call_time', [$fromDate,$toDate])->orderBy('call_time');
 
             } else if ($start_date_key !== FALSE && $start_date_key >= 0){
 
-                $fromDate = Carbon::createFromFormat('Y-m-d', $request[$params_present[$start_date_key]],'America/New_York')->toDateTimeString() . " 00:00:00";
-                $toDate = Carbon::now()->toDateTimeString() . " 23:59:59";
+                $fromDate = Carbon::parse($request['start_date'])->toDateString() . " 00:00:00";
+                $toDate = Carbon::now()->toDateTimeString();
 
                 $call_records = $call_records->whereBetween('call_time', [$fromDate,$toDate])->orderBy('call_time');
+
             } else if ($end_date_key !== FALSE && $end_date_key >= 0){
-                $fromDate = Carbon::now()->toDateTimeString() . " 00:00:00";
-                $toDate = Carbon::createFromFormat('Y-m-d', $request[$params_present[$end_date_key]],'America/New_York')->toDateTimeString() . " 23:59:59";
+
+                $fromDate = Carbon::now()->toDateTimeString();
+                $toDate = Carbon::parse($request['end_date'])->toDateString() . " 23:59:59";
 
                 $call_records = $call_records->whereBetween('call_time', [$fromDate,$toDate])->orderBy('call_time');
             }
 
             if ($priorities_key !== FALSE && $priorities_key >= 0){
-                $call_records = $call_records->where('priority', '=', $request['priorities'], 'and');
+                if (count($request['priorities']) > 0){
+                     $call_records = $call_records->whereIn('priority', $request['priorities']);
+                }
             }
+            
 
             if ($districts_key !== FALSE && $districts_key >= 0){
-                $call_records = $call_records->where('district', '=', $request['districts'], 'and');
+                if (count($request['districts']) > 0){
+                    $call_records = $call_records->whereIn('district', $request['districts']);
+                }
+            }            
+
+            //DB::enableQueryLog();
+
+            $query_result = $call_records->get();
+
+            //clean call records
+
+            //print_r("before:".$query_result->count());
+            $i = 0;
+            $to_ret = [];
+            foreach ($query_result as $value){
+                if (is_string($value->bpd_call_id) && 
+                    (is_numeric($value->latitude) && $value->latitude != 0) && 
+                    (is_numeric($value->longitude) && $value->longitude != 0))
+                {
+
+                    array_push($to_ret, $value);
+                }
             }
 
-            $result = $call_records->get();
+            $collection_to_ret = Collection::make($to_ret);
 
-            return BMResponse::success($result);
+            // //print_r("after:".$query_result->count());
+
+            // //$queries = DB::getQueryLog();
+            // //var_dump($queries);
+
+            return BMResponse::success($collection_to_ret);
         });
     });
 

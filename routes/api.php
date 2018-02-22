@@ -43,7 +43,7 @@ $api->version('v1', function (Router $api) {
 
     $api->get('hello', function() {
         return response()->json([
-            'message' => 'This is a simple example of item. Everyone can see it.'
+            'message' => 'Hello, World!'
         ]);
     });
 
@@ -58,7 +58,7 @@ $api->version('v1', function (Router $api) {
             $params_present = $validator->check(['start_date', 'end_date', 'priorities', 'districts'])->getParamsPresent();
 
             if (count($params_present) == 0){
-                return BMResponse::bad_request('No call record parameters specified');
+                return BMResponse::bad_request('Query missing parameters. Required: start_date, end_date | Optional: priorities[], districts[]');
             }
 
             $start_date_key = array_search('start_date', $params_present);

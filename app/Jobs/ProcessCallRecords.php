@@ -99,6 +99,8 @@ class ProcessCallRecords implements ShouldQueue
             $stmt = (new Statement())->offset($last_processed_line);
             $records = $stmt->process($reader);
 
+            $bar = $this->output->createProgressBar(count($reader));
+
             foreach ($records as $offset => $record) {
 
                 $record_count++;
@@ -197,7 +199,11 @@ class ProcessCallRecords implements ShouldQueue
                     $call_records_file->setLastProcessedBPDCallId($last_bpd_call_id);
                     $call_records_file->save();
                 }
+
+                $bar->advance();
             }
+
+            $bar->finish();
 
             if ($call_records_file->getLastProcessedLine() == count($reader)){
                 Log::info('Database has the latest call records. Processing skipped.');

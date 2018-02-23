@@ -119,8 +119,9 @@ class ProcessCallRecords implements ShouldQueue
                 $address = $record['incidentLocation'];
                 $addrAndCoordinates = $record['location'];
 
-                if ($bpd_call_id == 'null' || empty($bpd_call_id)){
+                if ($bpd_call_id == 'null' || empty($bpd_call_id) || !Carbon::parse($call_time)->isCurrentYear()){
                     // Skip this one
+                    $progress->advance();
                     $records_skipped++;
                     continue;
                 }
@@ -129,6 +130,7 @@ class ProcessCallRecords implements ShouldQueue
 
                 if ($record_exists){
                     // Skip this one
+                    $progress->advance();
                     $records_skipped++;
                     continue;
                 }

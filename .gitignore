@@ -130,6 +130,7 @@ fabric.properties
 *.tmlanguage.cache
 *.tmPreferences.cache
 *.stTheme.cache
+.phpintel/
 
 # workspace files are user-specific
 *.sublime-workspace

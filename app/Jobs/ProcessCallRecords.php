@@ -193,18 +193,15 @@ class ProcessCallRecords implements ShouldQueue
                 } else {
                     $records_added++;
                     $last_bpd_call_id = $bpd_call_id;
+                    $call_records_file->setLastProcessedLine($record_count);
+                    $call_records_file->setLastProcessedBPDCallId($last_bpd_call_id);
+                    $call_records_file->save();
                 }
             }
 
             if ($call_records_file->getLastProcessedLine() == count($reader)){
                 Log::info('Database has the latest call records. Processing skipped.');
-            } else {
-                $call_records_file->setLastProcessedLine(count($reader));
             }
-
-            if ($records_added != 0)
-                $call_records_file->setLastProcessedBPDCallId($last_bpd_call_id);
-            $call_records_file->save();
 
             Log::info('Processing complete.');
             Log::info('Record count: ' . $record_count);

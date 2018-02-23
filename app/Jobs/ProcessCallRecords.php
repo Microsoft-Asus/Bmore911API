@@ -17,6 +17,9 @@ use League\Csv\Reader;
 use League\Csv\Statement;
 use Carbon\Carbon;
 
+use Symfony\Component\Console\Helper\ProgressBar;
+use Symfony\Component\Console\Output\ConsoleOutput;
+
 class ProcessCallRecords implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
@@ -99,7 +102,9 @@ class ProcessCallRecords implements ShouldQueue
             $stmt = (new Statement())->offset($last_processed_line);
             $records = $stmt->process($reader);
 
-            $bar = $this->output->createProgressBar(count($reader));
+            $output = new ConsoleOutput();
+            $progress = new ProgressBar($output, count($reader));
+            $progress->start();
 
             foreach ($records as $offset => $record) {
 
@@ -200,10 +205,11 @@ class ProcessCallRecords implements ShouldQueue
                     $call_records_file->save();
                 }
 
-                $bar->advance();
+                $progress->advance();
+
             }
 
-            $bar->finish();
+            $progress->finish();
 
             if ($call_records_file->getLastProcessedLine() == count($reader)){
                 Log::info('Database has the latest call records. Processing skipped.');

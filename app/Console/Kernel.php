@@ -35,13 +35,13 @@ class Kernel extends ConsoleKernel
         if (App::environment('local')){
             $schedule->job(new ProcessCallRecords());
         } else {
-             // $schedule->job(new DownloadCallRecordsFile)->daily()->after(function (){
-             //     ProcessCallRecords::dispatch();
-             // });
-           //Only for testing
-           $schedule->job(new DownloadCallRecordsFile)->after(function (){
-               ProcessCallRecords::dispatch();
-           });
+             $schedule->job(new DownloadCallRecordsFile)->daily()->after(function (){
+                 ProcessCallRecords::dispatch();
+             });
+           // //Only for testing
+           // $schedule->job(new DownloadCallRecordsFile)->after(function (){
+           //     ProcessCallRecords::dispatch();
+           // });
         }
     }
 

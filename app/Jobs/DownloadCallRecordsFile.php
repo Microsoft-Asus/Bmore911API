@@ -76,7 +76,7 @@ class DownloadCallRecordsFile implements ShouldQueue
                 // }
 
                 if ($call_records_file != NULL){
-                    Log::info('DB entry exists.');
+                    Log::info('DB entry exists. Skipping creation.');
                 } else {
                     $call_records_file = new CallRecordFile;
                     $call_records_file->setLastProcessedLine(0);
@@ -121,13 +121,18 @@ class DownloadCallRecordsFile implements ShouldQueue
             $call_records_file = new CallRecordFile;
             $call_records_file->setUri('storage/app/' . AppStatics::$CALL_RECORDS_FILENAME);
             $call_records_file->setLastProcessedLine(0);
-        }
-        $status = $call_records_file->save();
+            $status = $call_records_file->save();
 
-        if ($status){
-            Log::info('Call records db entry created successfully');
+            if ($status){
+                Log::info('Call records db entry created successfully');
+            } else {
+                Log::info('Call records db entry failed to create');
+            }
         } else {
-            Log::info('Call records db entry failed to create');
+            Log::info('Call records db entry exists. Skipping creation.');
         }
+        
+
+
     }
 }

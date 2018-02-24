@@ -54,19 +54,32 @@ class DownloadCallRecordsFile implements ShouldQueue
 
                 $call_records_file = CallRecordFile::latest()->first();
 
-                if ($call_records_file != NULL && Carbon::parse($call_records_file->created_at)->isToday()){
-                    Log::info('DB entry exists. Skipping creation');
+                // if ($call_records_file != NULL && Carbon::parse($call_records_file->created_at)->isToday()){
+                //     Log::info('DB entry exists. Skipping creation');
+                // } else {
+                //     $call_records_file = new CallRecordFile;
+
+                //     //to get recent data from file I have to get the last 50,000 records once (genesis file).
+                //     $call_records_file_count = CallRecordFile::count();
+                //     if ($call_records_file_count == 0){ //genesis file does not exist
+                //         $reader = Reader::createFromPath('storage/app/' . AppStatics::$CALL_RECORDS_FILENAME, 'r');
+                //         $reader->setHeaderOffset(0);
+                //         $call_records_file->setLastProcessedLine(count($reader) - 50000);
+                //     }
+
+                //     $call_records_file->setUri($call_records_file_uri);
+                //     $status = $call_records_file->save();
+                //     if ($status)
+                //         Log::info('DB entry for records file created');
+                //     else
+                //         Log::info('DB entry for records file failed to create');
+                // }
+
+                if ($call_records_file != NULL){
+                    Log::info('DB entry exists.');
                 } else {
                     $call_records_file = new CallRecordFile;
-
-                    //to get recent data from file I have to get the last 50,000 records once (genesis file).
-                    $call_records_file_count = CallRecordFile::count();
-                    if ($call_records_file_count == 0){ //genesis file does not exist
-                        $reader = Reader::createFromPath('storage/app/' . AppStatics::$CALL_RECORDS_FILENAME, 'r');
-                        $reader->setHeaderOffset(0);
-                        $call_records_file->setLastProcessedLine(count($reader) - 50000);
-                    }
-
+                    $call_records_file->setLastProcessedLine(0);
                     $call_records_file->setUri($call_records_file_uri);
                     $status = $call_records_file->save();
                     if ($status)
@@ -74,6 +87,7 @@ class DownloadCallRecordsFile implements ShouldQueue
                     else
                         Log::info('DB entry for records file failed to create');
                 }
+
             } else {
                 Log::info('Call records file found, but its not recent');
                 $this->downloadFile();
@@ -91,16 +105,22 @@ class DownloadCallRecordsFile implements ShouldQueue
         $contents = file_get_contents($this->file_url);
         Storage::disk('local')->put(AppStatics::$CALL_RECORDS_FILENAME, $contents);
 
-        $call_records_file = new CallRecordFile;
-        $call_records_file->setUri('storage/app/' . AppStatics::$CALL_RECORDS_FILENAME);
+        // //to get recent data from file I have to get the last 50,000 records once (genesis file).
 
-        //to get recent data from file I have to get the last 50,000 records once (genesis file).
+        // $call_records_file_count = CallRecordFile::count();
+        // if ($call_records_file_count == 0){ //genesis file does not exist
+        //     $reader = Reader::createFromPath('storage/app/' . AppStatics::$CALL_RECORDS_FILENAME, 'r');
+        //     $reader->setHeaderOffset(0);
+        //     $call_records_file->setLastProcessedLine(count($reader) - 50000);
+        // }
+        // $status = $call_records_file->save();
 
         $call_records_file_count = CallRecordFile::count();
+
         if ($call_records_file_count == 0){ //genesis file does not exist
-            $reader = Reader::createFromPath('storage/app/' . AppStatics::$CALL_RECORDS_FILENAME, 'r');
-            $reader->setHeaderOffset(0);
-            $call_records_file->setLastProcessedLine(count($reader) - 50000);
+            $call_records_file = new CallRecordFile;
+            $call_records_file->setUri('storage/app/' . AppStatics::$CALL_RECORDS_FILENAME);
+            $call_records_file->setLastProcessedLine(0);
         }
         $status = $call_records_file->save();
 

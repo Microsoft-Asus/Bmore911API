@@ -74,7 +74,7 @@ class ProcessCallRecords implements ShouldQueue
             Log::info('Records file does not exist.');
         } else {
 
-            $last_processed_line = $call_records_file->last_processed_line;
+            $last_processed_line = $call_records_file->getLastProcessedLine();
             $last_bpd_call_id = NULL;
 
             if ($last_processed_line == NULL)
@@ -214,7 +214,7 @@ class ProcessCallRecords implements ShouldQueue
 
             $progress->finish();
 
-            if ($call_records_file->last_processed_line == count($reader)){
+            if ($call_records_file->getLastProcessedLine() == count($reader)){
                 Log::info('Database has the latest call records. Processing skipped.');
             }
 

@@ -60,8 +60,10 @@ class ProcessCallRecords implements ShouldQueue
             }
             $file_path = 'storage/app/' . AppStatics::$CALL_RECORDS_FILENAME_MINI;
         } else {
+            Log::info("Fetching latest call records file db entry.");
             $call_records_file = CallRecordFile::latest()->first();
             if ($call_records_file){
+                Log::info("DB Entry found for the latest call records file.");
                 $exists = Storage::disk('local')->exists(AppStatics::$CALL_RECORDS_FILENAME);
                 $file_path = $call_records_file->uri;
             } else {

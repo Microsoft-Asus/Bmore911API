@@ -108,7 +108,7 @@ class ProcessCallRecords implements ShouldQueue
 
             $total_lines_left = $total_lines - $last_processed_line;
 
-            if ($total_lines_left < 0){
+            if ($total_lines_left < 0)
                 $total_lines_left = 0;
 
             $output = new ConsoleOutput();

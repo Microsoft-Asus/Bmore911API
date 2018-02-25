@@ -104,9 +104,15 @@ class ProcessCallRecords implements ShouldQueue
             $stmt = (new Statement())->offset($last_processed_line);
             $records = $stmt->process($reader);
 
+            $total_lines = count($reader);
+
+            $total_lines_left = $total_lines - $last_processed_line;
+
+            if ($total_lines_left < 0){
+                $total_lines_left = 0;
+
             $output = new ConsoleOutput();
-            $progress = new ProgressBar($output, count($reader));
-            $progress->setProgress($last_processed_line);
+            $progress = new ProgressBar($output, $total_lines_left);
             $progress->start();
 
             foreach ($records as $offset => $record) {

@@ -12,6 +12,8 @@ use Illuminate\Support\Collection;
 $api = app(Router::class);
 
 $api->version('v1', function (Router $api) {
+
+    // authentication routes
     $api->group(['prefix' => 'auth'], function(Router $api) {
         $api->post('signup', 'App\\Api\\V1\\Controllers\\SignUpController@signUp');
         $api->post('login', 'App\\Api\\V1\\Controllers\\LoginController@login');
@@ -24,6 +26,7 @@ $api->version('v1', function (Router $api) {
         $api->get('me', 'App\\Api\\V1\\Controllers\\UserController@me');
     });
 
+    //test routes
     $api->group(['middleware' => 'jwt.auth'], function(Router $api) {
         $api->get('protected', function() {
             return response()->json([
@@ -47,6 +50,7 @@ $api->version('v1', function (Router $api) {
         ]);
     });
 
+    //record endpoints currently accessible by anyone
     $api->group(['prefix' => 'records'], function(Router $api) {
         $api->post('/search', function(Request $request){
 
@@ -66,20 +70,24 @@ $api->version('v1', function (Router $api) {
             $priorities_key = array_search('priorities', $params_present);
             $districts_key = array_search('districts', $params_present);
 
+            // Checks if the required json attributes are set in order to set a correct start_date and end_date.
+            // A datetime MySQL format is required for a query however Carbon can parse any time format and convert it into DATETIME.
+            
+            //Both start_date and end_date are defined and checked.
             if ( ($start_date_key !== FALSE && $start_date_key >= 0) && ($end_date_key !== FALSE && $end_date_key >= 0)){
 
                 $fromDate = Carbon::parse($request['start_date'])->toDateString() . " 00:00:00";
                 $toDate = Carbon::parse($request['end_date'])->toDateString() . " 23:59:59";
 
                 $call_records = $call_records->whereBetween('call_time', [$fromDate,$toDate])->orderBy('call_time');
-
+            //only start date is defined and checked. end_date is assumed to the time the request is sent.
             } else if ($start_date_key !== FALSE && $start_date_key >= 0){
 
                 $fromDate = Carbon::parse($request['start_date'])->toDateString() . " 00:00:00";
                 $toDate = Carbon::now('America/New_York')->toDateTimeString();
 
                 $call_records = $call_records->whereBetween('call_time', [$fromDate,$toDate])->orderBy('call_time');
-
+            //only end date is defined and checked. start_date is assumed to be the time the request is sent.
             } else if ($end_date_key !== FALSE && $end_date_key >= 0){
 
                 $fromDate = Carbon::now('America/New_York')->toDateTimeString();
@@ -87,14 +95,14 @@ $api->version('v1', function (Router $api) {
 
                 $call_records = $call_records->whereBetween('call_time', [$fromDate,$toDate])->orderBy('call_time');
             }
-
+            //priorities json attribute is checked
             if ($priorities_key !== FALSE && $priorities_key >= 0){
                 if (count($request['priorities']) > 0){
                      $call_records = $call_records->whereIn('priority', $request['priorities']);
                 }
             }
             
-
+            //districts json attribute is checked
             if ($districts_key !== FALSE && $districts_key >= 0){
                 if (count($request['districts']) > 0){
                     $call_records = $call_records->whereIn('district', $request['districts']);
@@ -103,11 +111,10 @@ $api->version('v1', function (Router $api) {
 
             //DB::enableQueryLog();
 
-            $query_result = $call_records->get();
+            $query_result = $call_records->get(); //query is run
 
-            //clean call records
+            //clean call records. latitude and longitude can be 0.
 
-            //print_r("before:".$query_result->count());
             $i = 0;
             $to_ret = [];
             foreach ($query_result as $value){

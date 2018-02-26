@@ -33,6 +33,14 @@ class DownloadCallRecordsFile implements ShouldQueue
 
     /**
      * Execute the job.
+     * 
+     * Runs the download process. 
+     * Checks whether the file exists locally by checking the UNIX timestamp.
+     * If it does then downloading will be skipped however the db entry
+     * for the file is checked and created if necessary. There will always be 1 entry in the db
+     * for the local file. This is by design since we do not want to overwrite the last processed line column
+     * and also avoids the complexity of having to maintain multiple db file records with different attributes.
+     * 
      *
      * @return void
      */
@@ -53,27 +61,6 @@ class DownloadCallRecordsFile implements ShouldQueue
                 Log::info('Checking DB entry...');
 
                 $call_records_file = CallRecordFile::latest()->first();
-
-                // if ($call_records_file != NULL && Carbon::parse($call_records_file->created_at)->isToday()){
-                //     Log::info('DB entry exists. Skipping creation');
-                // } else {
-                //     $call_records_file = new CallRecordFile;
-
-                //     //to get recent data from file I have to get the last 50,000 records once (genesis file).
-                //     $call_records_file_count = CallRecordFile::count();
-                //     if ($call_records_file_count == 0){ //genesis file does not exist
-                //         $reader = Reader::createFromPath('storage/app/' . AppStatics::$CALL_RECORDS_FILENAME, 'r');
-                //         $reader->setHeaderOffset(0);
-                //         $call_records_file->setLastProcessedLine(count($reader) - 50000);
-                //     }
-
-                //     $call_records_file->setUri($call_records_file_uri);
-                //     $status = $call_records_file->save();
-                //     if ($status)
-                //         Log::info('DB entry for records file created');
-                //     else
-                //         Log::info('DB entry for records file failed to create');
-                // }
 
                 if ($call_records_file != NULL){
                     Log::info('DB entry exists. Skipping creation.');
@@ -100,20 +87,25 @@ class DownloadCallRecordsFile implements ShouldQueue
 
     }
 
+    /**
+     * Execute the job.
+     * 
+     * Downloads the file using the PHP system call file_get_contents 
+     * File is stored locally in storage/app. Laravel has an issue with finding the file 
+     * stored locally so that is why I build the file path myself. 
+     * Ideally an AWS instance would be better for this and Laravel automatically takes
+     * care of the connection as long as the config is defined in Laravel config.php
+     * 
+     * Note: When using heroku almost always the file won't exist since it has en ephemeral filesystem.
+     * This is why it would be ideal for files to be stored somewhere else and not on heroku.
+     * 
+     *
+     * @return void
+     */
     private function downloadFile(){
         Log::info('Downloading call records file...');
         $contents = file_get_contents($this->file_url);
         Storage::disk('local')->put(AppStatics::$CALL_RECORDS_FILENAME, $contents);
-
-        // //to get recent data from file I have to get the last 50,000 records once (genesis file).
-
-        // $call_records_file_count = CallRecordFile::count();
-        // if ($call_records_file_count == 0){ //genesis file does not exist
-        //     $reader = Reader::createFromPath('storage/app/' . AppStatics::$CALL_RECORDS_FILENAME, 'r');
-        //     $reader->setHeaderOffset(0);
-        //     $call_records_file->setLastProcessedLine(count($reader) - 50000);
-        // }
-        // $status = $call_records_file->save();
 
         $call_records_file_count = CallRecordFile::count();
 

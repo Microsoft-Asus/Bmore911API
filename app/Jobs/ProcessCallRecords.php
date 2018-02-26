@@ -38,6 +38,20 @@ class ProcessCallRecords implements ShouldQueue
     /**
      * Execute the job.
      *
+     * Runs the record file processing. It assumes that the download process finished successfully.
+     * Tries to find the file in the pre-defined path and if doesn't exists it stops.
+     * If the file is found the process begins and a db entry for the record file is used to set the 
+     * line marker on where to resume the processing. last_processed_line attribute keeps track of this and is 
+     * updated only when a record is added in the db. last_processed_bpd_call_is is also updated every time
+     * a record is added. 
+     * 
+     * In the process records with empty or null bpd_call_id are skipped. In addition if a record exists in the db it is also skipped.
+     * 
+     * Note: The current implementation is set to fetch only the 2018 records due to time limitations and Heroku dyno scalability issues
+     * with long running processes in their Free plan. A database of size bigger than 5MB is also needed since it will take about 30,000 
+     * records otherwise.
+     * 
+     *
      * @return void
      */
     public function handle()
@@ -48,7 +62,7 @@ class ProcessCallRecords implements ShouldQueue
         $file_path = NULL;
         $call_records_file = NULL;
 
-        if (App::environment('local')) {
+        if (App::environment('local')) { //for local server testing
             $exists = Storage::disk('local')->exists(AppStatics::$CALL_RECORDS_FILENAME_MINI);
             if ($exists){
                 $call_records_file = CallRecordFile::where('uri', 'storage/app/' . AppStatics::$CALL_RECORDS_FILENAME_MINI)->first();
@@ -59,7 +73,7 @@ class ProcessCallRecords implements ShouldQueue
                 }
             }
             $file_path = 'storage/app/' . AppStatics::$CALL_RECORDS_FILENAME_MINI;
-        } else {
+        } else { // checking if db entry for the file exists. Need to know uri of file and last processed line.
             Log::info("Fetching latest call records file db entry.");
             $call_records_file = CallRecordFile::latest()->first();
             if ($call_records_file){
@@ -72,9 +86,10 @@ class ProcessCallRecords implements ShouldQueue
             }
         }
 
-        if (!$exists){
+        if (!$exists){ //records file does not exist. something is wrong with the download process.
             Log::info('Records file does not exist.');
-        } else {
+        } else { //records file is in filesystem. 
+            //using the db entry for record file to determine if the process has been run before and resume from what is left of the lines.
 
             $last_processed_line = $call_records_file->getLastProcessedLine();
             $last_bpd_call_id = NULL;

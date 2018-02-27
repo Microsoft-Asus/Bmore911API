@@ -12,7 +12,7 @@ abstract class TestCase extends BaseTestCase
      *
      * @var string
      */
-    protected $baseUrl = 'http://localhost';
+    protected $baseUrl = 'http://localhost:8000/api';
 
     /**
      * Creates the application.

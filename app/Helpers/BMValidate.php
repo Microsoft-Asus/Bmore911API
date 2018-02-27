@@ -46,9 +46,13 @@ class BMValidate {
                 array_push($params_missing, $val);
                 $count1++;
             } else {
-                //$params_present[$count2] = $val;
-                array_push($params_present, $val);
-                $count2++;
+                if (empty($this->json_data[$val])){ //making sure its not empty
+                    array_push($params_missing, $val);
+                    $count1++;
+                } else {
+                    array_push($params_present, $val);
+                    $count2++;
+                }
             }
         }
 

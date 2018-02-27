@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Feature;
+namespace App\Functional\Api\V1\API;
 
 use Carbon\Carbon;
 use App\Models\Call;
@@ -100,18 +100,71 @@ class EndpointTest extends TestCase
             ->assertJson(['status' => 'failed']);
     }
 
-    // public function testRecordSearchOnlyStartDate(){
-    //     $start_date = Carbon::today()->toDateTimeString();
-    //     var_dump($start_date);
-    //     $jsonData = [
-    //         'start_date' => Carbon::today()->toDateTimeString(),
-    //         'end_date' => ""
-    //     ];
+    public function testRecordSearchOnlyOptionalProperties(){
 
-    //     $response = $this->json('POST', $this->baseUrl . '/records/search', $jsonData);
-    //     $response
-    //         ->assertSuccessful()
-    //         ->assertJsonStructure(['status', 'data'])
-    //         ->assertJson(['district' => 'SE', 'priority' => 1]);
-    // }
+        $jsonData = [
+            'districts' => ['NE'],
+            'priorities' => [3]
+        ];
+
+        $response = $this->json('POST', $this->baseUrl . '/records/search', $jsonData);
+        $response
+            ->assertStatus(400)
+            ->assertJsonStructure(['status', 'data'])
+            ->assertJson(['status' => 'failed']);
+    }
+
+    public function testRecordSearchOnlyStartDate(){
+        
+        $jsonData = [
+            'start_date' => Carbon::yesterday()->toDateTimeString(),
+            'end_date' => ""
+        ];
+
+        $response = $this->json('POST', $this->baseUrl . '/records/search', $jsonData);
+        $response
+            ->assertSuccessful()
+            ->assertJsonStructure(['status', 'data']);
+    }
+
+
+    public function testRecordSearchOnlyEndDate(){
+        
+        $jsonData = [
+            'start_date' => "",
+            'end_date' => Carbon::tomorrow()->toDateTimeString()
+        ];
+
+        $response = $this->json('POST', $this->baseUrl . '/records/search', $jsonData);
+        $response
+            ->assertSuccessful()
+            ->assertJsonStructure(['status', 'data']);
+    }
+
+
+    public function testRecordSearchOnlyStartDateAndEndDate(){
+        
+        $jsonData = [
+            'start_date' => Carbon::today()->startOfWeek()->toDateTimeString(),
+            'end_date' => Carbon::tomorrow()->toDateTimeString()
+        ];
+
+        $response = $this->json('POST', $this->baseUrl . '/records/search', $jsonData);
+        $response
+            ->assertSuccessful()
+            ->assertJsonStructure(['status', 'data']);
+    }
+
+    public function testRecordSearchOnlyStartDateAndPriority(){
+        
+        $jsonData = [
+            'start_date' => Carbon::today()->startOfWeek()->toDateTimeString(),
+            'priorities' => [3]
+        ];
+
+        $response = $this->json('POST', $this->baseUrl . '/records/search', $jsonData);
+        $response
+            ->assertSuccessful()
+            ->assertJsonStructure(['status', 'data']);
+    }
 }

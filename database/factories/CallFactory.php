@@ -18,30 +18,32 @@ $factory->define(Call::class, function (Faker $faker) {
 });
 
 $factory->state(Call::class, 'high-priority', [
-    'priority' => 3,
+    'priority' => 3
 ]);
 
 
 $factory->state(Call::class, 'low-priority', [
-    'priority' => 1,
+    'priority' => 1
 ]);
 
 $factory->state(Call::class, 'district-NW', [
-    'district' => 'NW',
+    'district' => 'NW'
 ]);
 
 $factory->state(Call::class, 'district-SE', [
-    'district' => 'SE',
+    'district' => 'SE'
 ]);
 
 $factory->state(Call::class, 'today', [
-    'call_time' => Carbon::today(),
+    'call_time' => Carbon::today('America/New_York')->toDateTimeString(),
 ]);
 
 $factory->state(Call::class, 'this-week', [
-    'call_time' => (Carbon::today()->startOfWeek()->isSameDay(Carbon::today()) ? Carbon::tomorrow() : Carbon::now()->subDay()),
+    'call_time' => (Carbon::today('America/New_York')->startOfWeek()->isSameDay(Carbon::today('America/New_York')) ? 
+        Carbon::tomorrow('America/New_York')->toDateTimeString() : Carbon::yesterday('America/New_York')->toDateTimeString()),
 ]);
 
 $factory->state(Call::class, 'this-month', [
-    'call_time' => (Carbon::today()->startOfMonth()->isSameDay(Carbon::today()) ? Carbon::tomorrow() : Carbon::now()->subDay()),
+    'call_time' => (Carbon::today('America/New_York')->startOfMonth()->isSameDay(Carbon::today('America/New_York')) ? 
+        Carbon::tomorrow('America/New_York')->toDateTimeString() : Carbon::yesterday('America/New_York')->toDateTimeString()),
 ]);

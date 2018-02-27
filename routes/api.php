@@ -137,10 +137,42 @@ $api->version('v1', function (Router $api) {
             return BMResponse::success($collection_to_ret);
         });
 
+        $api->get('/count/all', function(){
+
+            //today
+            $from = Carbon::now('America/New_York')->toDateString() . " 00:00:00";
+            $to = Carbon::now('America/New_York')->toDateTimeString();
+            $today_count = Call::whereBetween('call_time', [$from,$to])->count();
+
+            //week
+            $from = Carbon::now('America/New_York')->startOfWeek();
+            $to = Carbon::now('America/New_York')->toDateTimeString();
+            $week_count = Call::whereBetween('call_time', [$from,$to])->count();
+            
+            //month
+            $from = Carbon::now('America/New_York')->startOfMonth();
+            $to = Carbon::now('America/New_York')->toDateTimeString();
+            $month_count = Call::whereBetween('call_time', [$from,$to])->count();
+
+            //year
+            $from = Carbon::now('America/New_York')->startOfYear();
+            $to = Carbon::now('America/New_York')->toDateTimeString();
+            $year_count = Call::whereBetween('call_time', [$from,$to])->count();
+
+            $query_return = array(
+                'today' => $today_count, 
+                'week' => $week_count,
+                'month' => $month_count,
+                'year' => $year_count
+            );
+
+            return BMResponse::success($query_return); 
+        });
+
         $api->get('/count/today', function(){
 
-            $from = Carbon::now()->toDateString() . " 00:00:00";
-            $to = Carbon::now()->toDateTimeString();
+            $from = Carbon::now('America/New_York')->toDateString() . " 00:00:00";
+            $to = Carbon::now('America/New_York')->toDateTimeString();
 
             $query_return = Call::whereBetween('call_time', [$from,$to])->count();
 
@@ -166,8 +198,11 @@ $api->version('v1', function (Router $api) {
             return BMResponse::success($query_return); 
         });
 
-        $api->get('/count/total', function(){
-            $query_return = Call::count();
+        $api->get('/count/year', function(){
+            $from = Carbon::now('America/New_York')->startOfYear();
+            $to = Carbon::now('America/New_York')->toDateTimeString();
+
+            $query_return = Call::whereBetween('call_time', [$from,$to])->count();
 
             return BMResponse::success($query_return);
         });

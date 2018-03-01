@@ -148,17 +148,17 @@ $api->version('v1', function (Router $api) {
             $today_count = Call::whereBetween('call_time', [$from,$to])->count();
 
             //week
-            $from = Carbon::now('America/New_York')->startOfWeek();
+            $from = Carbon::now('America/New_York')->startOfWeek()->toDateTimeString();
             $to = Carbon::now('America/New_York')->toDateTimeString();
             $week_count = Call::whereBetween('call_time', [$from,$to])->count();
             
             //month
-            $from = Carbon::now('America/New_York')->startOfMonth();
+            $from = Carbon::now('America/New_York')->startOfMonth()->toDateTimeString();
             $to = Carbon::now('America/New_York')->toDateTimeString();
             $month_count = Call::whereBetween('call_time', [$from,$to])->count();
 
             //year
-            $from = Carbon::now('America/New_York')->startOfYear();
+            $from = Carbon::now('America/New_York')->startOfYear()->toDateTimeString();
             $to = Carbon::now('America/New_York')->toDateTimeString();
             $year_count = Call::whereBetween('call_time', [$from,$to])->count();
 
@@ -184,7 +184,7 @@ $api->version('v1', function (Router $api) {
 
         $api->get('/count/week', function(){
 
-            $from = Carbon::now('America/New_York')->startOfWeek();
+            $from = Carbon::now('America/New_York')->startOfWeek()->toDateTimeString();
             $to = Carbon::now('America/New_York')->toDateTimeString();
 
             $query_return = Call::whereBetween('call_time', [$from,$to])->count();
@@ -193,7 +193,7 @@ $api->version('v1', function (Router $api) {
         });
 
         $api->get('/count/month', function(){
-            $from = Carbon::now('America/New_York')->startOfMonth();
+            $from = Carbon::now('America/New_York')->startOfMonth()->toDateTimeString();
             $to = Carbon::now('America/New_York')->toDateTimeString();
 
             $query_return = Call::whereBetween('call_time', [$from,$to])->count();
@@ -202,7 +202,7 @@ $api->version('v1', function (Router $api) {
         });
 
         $api->get('/count/year', function(){
-            $from = Carbon::now('America/New_York')->startOfYear();
+            $from = Carbon::now('America/New_York')->startOfYear()->toDateTimeString();
             $to = Carbon::now('America/New_York')->toDateTimeString();
 
             $query_return = Call::whereBetween('call_time', [$from,$to])->count();

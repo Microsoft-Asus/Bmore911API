@@ -344,7 +344,7 @@ An example response from that endpoint would be:
 	"data": {
 		"today": 0,
 		"week": 0,
-		"month": 0,
+		"month": 40097,
 		"year": 118539
 	}
 }
